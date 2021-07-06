@@ -20,15 +20,16 @@ public class AlertRabbit {
             List<Long> store = new ArrayList<>();
             Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
             scheduler.start();
+            Properties prop = getProperties();
             JobDataMap data = new JobDataMap();
-            try (Connection cn = getConnection()) {
+            try (Connection cn = getConnection(prop)) {
                 data.put("store", store);
                 data.put("connection", cn);
                 JobDetail job = newJob(Rabbit.class)
                         .usingJobData(data)
                         .build();
                 SimpleScheduleBuilder times = simpleSchedule()
-                        .withIntervalInSeconds(getInterval())
+                        .withIntervalInSeconds(getInterval(prop))
                         .repeatForever();
                 Trigger trigger = newTrigger()
                         .startNow()
@@ -44,30 +45,27 @@ public class AlertRabbit {
         }
     }
 
-    public static int getInterval() {
+    public static Properties getProperties() {
         Properties properties = new Properties();
         try (FileReader reader = new FileReader("c:/projects/job4j_grabber/src/main/resources/rabbit.properties")) {
             properties.load(reader);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return properties;
+    }
+
+    public static int getInterval(Properties properties) {
         String s = properties.getProperty("rabbit.interval");
         return Integer.parseInt(s);
     }
 
-    private static Connection getConnection() throws Exception {
-        Properties properties = new Properties();
-        try (FileReader reader = new FileReader("c:/projects/job4j_grabber/src/main/resources/rabbit.properties")) {
-            properties.load(reader);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private static Connection getConnection(Properties properties) throws Exception {
         Class.forName(properties.getProperty("jdbc.driver"));
         String url = properties.getProperty("jdbc.url");
         String login = properties.getProperty("jdbc.username");
         String password = properties.getProperty("jdbc.password");
         return DriverManager.getConnection(url, login, password);
-
     }
 
     private static long insert(long date, Connection cn) {
