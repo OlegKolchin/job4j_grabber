@@ -14,7 +14,6 @@ import static org.quartz.SimpleScheduleBuilder.*;
 
 public class AlertRabbit {
 
-    private static Connection cn;
 
     public static void main(String[] args) {
         try {
@@ -22,23 +21,24 @@ public class AlertRabbit {
             Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
             scheduler.start();
             JobDataMap data = new JobDataMap();
-            data.put("store", store);
-            data.put("connection", getConnection());
-            JobDetail job = newJob(Rabbit.class)
-                    .usingJobData(data)
-                    .build();
-            SimpleScheduleBuilder times = simpleSchedule()
-                    .withIntervalInSeconds(getInterval())
-                    .repeatForever();
-            Trigger trigger = newTrigger()
-                    .startNow()
-                    .withSchedule(times)
-                    .build();
-            scheduler.scheduleJob(job, trigger);
-            insert(System.currentTimeMillis());
-            Thread.sleep(10000);
-            scheduler.shutdown();
-            System.out.println(store);
+            try (Connection cn = getConnection()) {
+                data.put("store", store);
+                data.put("connection", cn);
+                JobDetail job = newJob(Rabbit.class)
+                        .usingJobData(data)
+                        .build();
+                SimpleScheduleBuilder times = simpleSchedule()
+                        .withIntervalInSeconds(getInterval())
+                        .repeatForever();
+                Trigger trigger = newTrigger()
+                        .startNow()
+                        .withSchedule(times)
+                        .build();
+                scheduler.scheduleJob(job, trigger);
+                Thread.sleep(10000);
+                scheduler.shutdown();
+                System.out.println(store);
+            }
         } catch (Exception se) {
             se.printStackTrace();
         }
@@ -66,11 +66,11 @@ public class AlertRabbit {
         String url = properties.getProperty("jdbc.url");
         String login = properties.getProperty("jdbc.username");
         String password = properties.getProperty("jdbc.password");
-        cn = DriverManager.getConnection(url, login, password);
-        return cn;
+        return DriverManager.getConnection(url, login, password);
+
     }
 
-    private static long insert(long date) {
+    private static long insert(long date, Connection cn) {
         try (PreparedStatement statement =
                      cn.prepareStatement("insert into rabbit(create_date) values (?)")) {
             statement.setTimestamp(1, new Timestamp(date));
@@ -92,7 +92,10 @@ public class AlertRabbit {
         public void execute(JobExecutionContext context) throws JobExecutionException {
             System.out.println("Rabbit runs here ...");
             List<Long> store = (List<Long>) context.getJobDetail().getJobDataMap().get("store");
-            store.add(System.currentTimeMillis());
+            Connection cn = (Connection) context.getJobDetail().getJobDataMap().get("connection");
+            long time = System.currentTimeMillis();
+            store.add(time);
+            insert(time, cn);
         }
     }
 }
