@@ -10,7 +10,7 @@ import java.time.ZoneId;
 
 public class SqlRuDateTimeParser implements DateTimeParser {
 
-    private static final DateFormatSymbols myDate = new DateFormatSymbols() {
+    private static final DateFormatSymbols DATE = new DateFormatSymbols() {
         @Override
         public String[] getMonths() {
             return new String[]{"янв", "фев", "мар", "апр", "май", "июн",
@@ -20,11 +20,11 @@ public class SqlRuDateTimeParser implements DateTimeParser {
 
     @Override
     public LocalDateTime parse(String parse) throws ParseException {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yy, hh:mm", myDate);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yy, hh:mm", DATE);
         String[] sql = parse.split(", ");
         if (sql[0].equals("сегодня")) {
             return LocalDateTime.of(LocalDate.now(), LocalTime.parse(sql[1]));
-        } else if(sql[0].equals("вчера")) {
+        } else if (sql[0].equals("вчера")) {
             return LocalDateTime.of(LocalDate.now().minusDays(1), LocalTime.parse(sql[1]));
         }
         return dateFormat.parse(parse).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
