@@ -34,9 +34,8 @@ public class SqlRuParse implements Parse {
                 String title = href.text();
                 String desc = postReader(url);
                 String[] temp = desc.split("\\n");
-                int id = 0;
                 LocalDateTime created = dateTimeParser.parse(temp[temp.length - 1]);
-                rsl.add(new Post(id++, title, url, desc, created));
+                rsl.add(new Post(0, title, url, desc, created));
             }
             index++;
         }
