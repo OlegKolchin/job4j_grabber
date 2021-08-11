@@ -46,11 +46,10 @@ public class PsqlStore implements Store, AutoCloseable {
         try (PreparedStatement statement = cnn.prepareStatement("select * from post")) {
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    posts.add(new Post(resultSet.getInt("id")
-                    , resultSet.getString("name")
-                    , resultSet.getString("text")
-                    , resultSet.getString("link")
-                    , new Timestamp(resultSet.getDate("created").getTime()).toLocalDateTime()));
+                    posts.add(new Post(resultSet.getInt("id"), resultSet.getString("name"),
+                            resultSet.getString("text"),
+                            resultSet.getString("link"),
+                            new Timestamp(resultSet.getDate("created").getTime()).toLocalDateTime()));
                 }
             }
         } catch (Exception e) {
@@ -65,11 +64,11 @@ public class PsqlStore implements Store, AutoCloseable {
         try (PreparedStatement statement = cnn.prepareStatement(s)) {
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
-                    return new Post(resultSet.getInt("id")
-                            , resultSet.getString("name")
-                            , resultSet.getString("text")
-                            , resultSet.getString("link")
-                            , new Timestamp(resultSet.getDate("created").getTime()).toLocalDateTime());
+                    return new Post(resultSet.getInt("id"),
+                            resultSet.getString("name"),
+                            resultSet.getString("text"),
+                            resultSet.getString("link"),
+                            new Timestamp(resultSet.getDate("created").getTime()).toLocalDateTime());
                 }
             }
         } catch (Exception e) {

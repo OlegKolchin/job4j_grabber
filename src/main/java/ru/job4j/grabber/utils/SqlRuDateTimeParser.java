@@ -23,9 +23,9 @@ public class SqlRuDateTimeParser implements DateTimeParser {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yy, hh:mm", DATE);
         String[] sql = parse.split(", ");
         if (sql[0].equals("сегодня")) {
-            return LocalDateTime.of(LocalDate.now(), LocalTime.parse(sql[1]));
+            return LocalDateTime.of(LocalDate.now(), LocalTime.parse(sql[1].substring(0, sql[1].length() - 1)));
         } else if (sql[0].equals("вчера")) {
-            return LocalDateTime.of(LocalDate.now().minusDays(1), LocalTime.parse(sql[1]));
+            return LocalDateTime.of(LocalDate.now().minusDays(1), LocalTime.parse(sql[1].substring(0, sql[1].length() - 1)));
         }
         return dateFormat.parse(parse).toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
